@@ -1,0 +1,206 @@
+---
+title: "Analyzing NBA Game Statistics Using Multiple Linear Regression"
+author: "**Lester Lee**  \nStats 101A  \nProfessor Xu \n"
+output:
+  pdf_document:
+    latex_engine: xelatex
+    toc: false
+    toc_depth: '4'
+  html_document:
+    toc: false
+    toc_depth: 4
+    toc_float: false
+    code_folding: show
+  word_document:
+    toc: false
+    toc_depth: '4'
+header-includes:
+  - \usepackage{float}
+---
+
+# Introduction 
+
+## Context
+Basketball has become increasingly data-driven, with teams and analysts leveraging 
+statistics to enhance performance and strategy. One crucial aspect of basketball 
+analytics is understanding the factors that contribute to scoring performance in games.
+An accurate prediction model that takes in game statistics as predictors is
+essential for evaluating team performance and optimizing strategies. 
+By analyzing game-level data, we can determine how different 
+metrics—such as minutes (MIN), points(PTS), assists(AST), and rebounds (REB).
+
+
+## Objective 
+- Develop a Multiple Linear Regression (MLR) model to predict total points scored in an NBA game.
+- Identify the most significant statistical predictors of scoring.
+- Evaluate the strength of relationships between independent variables (e.g., MIN, PTS, AST, REB) and PTS.
+- Assess the model’s accuracy and discuss potential limitations.
+
+
+# Descriptive Statistics
+Before building the regression model, we first examine the dataset structure and key statistics.
+This helps us understand the distribution of each variable and identify any potential outliers
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(readxl)
+library(dplyr)
+library(knitr)
+data <- read_excel("Dataset.xlsx")
+
+cleaned_data <- data %>%
+  select(Team, `Match Up`, `Game Date`, `W/L`, MIN, PTS, AST, REB) %>%
+  rename(Team = Team, 
+         Match = `Match Up`, 
+         Date = `Game Date`, 
+         WinLoss = `W/L`, 
+         Minutes = MIN, 
+         Points = PTS, 
+         Assists = AST, 
+         Rebounds = REB)
+
+
+numeric_data <- cleaned_data %>% select(Minutes, Points, Assists, Rebounds)
+
+kable(summary(numeric_data), 
+      caption = "Summary Statistics of Key Variables", full_width = FALSE) 
+```
+# Multiple Linear Regression Model
+In the regression model, we selected Field Goals, Threes, Assist, and Rebounds as predictors. 
+While points is our response variable. We propose the following MLR model: 
+
+Points = $\beta_0 + \beta_1(\text{Assists}) + \beta_2(\text{Rebounds}) + \beta_3(\text{Minutes}) +\beta_4(\text{Winloss}) + \epsilon$
+
+## Coefficient Interpretation
+Assists($\beta_1$): Each additional assist increases predicted points by about X.
+
+Rebounds($\beta_2$): A rebound increase corresponds to a smaller but positive 
+increase in points.
+
+Minutes($\beta_3$): More playing time leads to higher scoring, with each 
+additional minute adding Z points on average.
+
+Win/Loss($\beta_4$): A win or loss may have a significant impact on the scoring 
+pattern, depending on team performance trends.
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(broom)
+library(kableExtra)
+
+fit <- lm(Points ~ Assists + Rebounds + Minutes + WinLoss, data = cleaned_data)
+
+model_table <- tidy(fit, conf.int = TRUE)
+kable(model_table, caption = "Regression Model", digits = 3)
+
+
+```
+```{r,echo=FALSE, message=FALSE, warning=FALSE}
+library(car) 
+vif_values <- vif(fit)
+kable(as.data.frame(vif_values), caption = "VIF Values")
+
+```
+
+**Result Explanation ** The adjusted $R^2$ of 0.4793 indicates that our model 
+explains approximately 48% of the variation in total points scored, suggesting
+that while Assists, Rebounds, Minutes, and Win/Loss significantly influence 
+scoring, other unaccounted factors contribute to variability. Assists is the
+strongest predictor, with each assist increasing points by about 1.20. 
+Minutes played  also has a positive impact, while Win/Loss  shows that winning 
+teams score nearly 9 points more on average. Rebounds  has a  small but 
+significant negative effect. The F-test confirms the overall model’s
+significance, and low VIF values indicate no multicollinearity issues among 
+the predictors.
+
+
+# Model Assumptions for MLR
+The model assumptions for multiple linear regression are as follows:
+
+1. Linearity: The relationship between predictors and response in linear
+2. Normality: The residuals are normally distributed
+3. Homoscedasticity: The residuals have constant variance
+4. No Under Influence: No extreme outliers or high-leverage points
+5. Low Multicollinearity: Predictors are not overly correlated with each other
+
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+par(mfrow = c(2,2))
+plot(fit) 
+```
+**Residuals vs Fitted Plot**  The residuals appear randomly scattered around the horizontal line at zero, indicating that the model captures a roughly linear relationship between predictors and the response. No clear patterns or trends suggest that no non-linearity is present.
+
+**Normal Q-Q Plot** The residuals closely follow the reference line, implying 
+that they are approximately normally distributed
+
+**Scale-Location Plot** That the variance of the residuals is relatively constant 
+across the range of fitted values.
+
+**Residuals vs Leverage** A few observations may have slightly higher leverage,
+but none appear to overly distort the regression results.
+
+
+Based on the plots, we see no major violations of linearity, 
+normality, or homoscedasticity. Additionally, no observations appear to have 
+influence on the model, and our earlier VIF checks
+confirm low multicollinearity. Therefore, we can conclude that the assumptions 
+of multiple linear regression are reasonably satisfied.
+
+# Model Selection
+```{r, echo=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+library(MASS)
+
+full_model <- lm(Points ~ Assists + Rebounds + Minutes + WinLoss, data = cleaned_data)
+stepwise_model <- stepAIC(full_model, direction = "both")
+
+stepwise_table <- tidy(stepwise_model, conf.int = TRUE)
+kable(stepwise_table, caption = "Final Model After Stepwise Regression", digits = 3)
+
+anova_table <- as.data.frame(stepwise_model$anova)
+kable(anova_table, caption = "Model Selection Process Stepwise Regression", digits = 3)
+
+
+```
+```{r,echo=FALSE, message=FALSE, warning=FALSE}
+stepwise_table <- tidy(stepwise_model, conf.int = TRUE)
+kable(stepwise_table, caption = "Final Model After Stepwise Regression", digits = 3)
+
+anova_table <- as.data.frame(stepwise_model$anova)
+kable(anova_table, caption = "Model Selection Process Stepwise Regression", digits = 3)
+
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+library(leaps)
+best_sub <- regsubsets(Points ~ Assists + Rebounds + Minutes + WinLoss,
+                       data = cleaned_data, nbest = 1)
+
+
+summary(best_sub)
+plot(best_sub, scale = "adjr2")
+
+```
+```{r,echo=FALSE, message=FALSE, warning=FALSE}
+plot(best_sub, scale = "adjr2")
+```
+
+Ifound that the stepwise-selected model, which optimizes for lower AIC, 
+maintains a moderate Adjusted $R^2$ of 48%. Showing that our predictors explain
+nearly half of the variability in total points scored.
+
+# Conclusion
+Our final multiple linear regression model explains over 48% of the variance in
+NBA game results and identifies Minutes, Win/Loss Assists, and Rebounds as 
+significant predictors of total points scored. Minutes played alsocontributes, 
+suggesting that more time on the court leads to increased scoring opportunities.
+Interestingly, rebounds show a slight negative relationship with scoring, 
+possibly indicating that teams with more rebounds might have lower shooting 
+efficiency or slower-paced games. Win/Loss status is a strong 
+predictor, with winning teams typically scoring 8.85 more points than
+losing teams.
+
+Our analysis is a single data set and advanced statistics like 
+defensive metrics or player-specific efficiency which will cause a few 
+limitations. The MLR model serves a solid foundation for understanding 
+scoring in the NBA games. 
+
