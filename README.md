@@ -36,7 +36,7 @@ This project investigates the impact of various in-game statistics on the total 
 -  Linearity: Residuals randomly scattered
 -  Normality: Residuals follow Q-Q line
 -  Homoscedasticity: Constant variance of residuals
--  Low leverage and Cook's Distance
+-  Low leverage 
 
 ## Model Selection
 
