@@ -2,7 +2,7 @@
 
 Hi, I’m **Lester Lee**, a third-year student at **UCLA** majoring in **Statistics and Data Science**.
 
-This project examines how various in-game statistics impact the total points scored in NBA games using **Multiple Linear Regression (MLR)**. This is part of a course project for **Stats 101A**.
+This project investigates the impact of various in-game statistics on the total points scored in NBA games using **Multiple Linear Regression (MLR)**. This is part of a course project for **Stats 101A**.
 
 ## Objective
 - Develop a regression model to predict total points scored in a game
@@ -55,4 +55,12 @@ This regression model shows that:
 ---
 
 📌 *This project demonstrates how statistical modeling and sports analytics intersect to generate actionable insights.*
+
+---
+
+## 📂 Project Files
+
+- 📄 [Final Report (PDF)](Project.pdf)  
+- 🧮 [NBA Game Dataset (Excel)](Dataset.xlsx)  
+- 📜 [R Markdown Script](Project.Rmd)
 
