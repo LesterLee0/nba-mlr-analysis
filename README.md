@@ -1,7 +1,5 @@
 # 🏀 NBA Game Statistics: Multiple Linear Regression Analysis
 
-Hi, I’m **Lester Lee**, a third-year student at **UCLA** majoring in **Statistics and Data Science**.
-
 This project investigates the impact of various in-game statistics on the total points scored in NBA games using **Multiple Linear Regression (MLR)**. This is part of a course project for **Stats 101A**.
 
 ## Objective
